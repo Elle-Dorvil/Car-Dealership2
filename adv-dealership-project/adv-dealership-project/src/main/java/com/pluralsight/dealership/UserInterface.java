@@ -1,5 +1,6 @@
 package com.pluralsight.dealership;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
@@ -193,5 +194,51 @@ public class UserInterface {
             System.out.println(vehicle.toString());
         }
     }
+    public void sellOrLeaseVehicle() {
+        ContractFileManager contractFileManager = new ContractFileManager();
+        System.out.println("Enter VIN of the vehicle: ");
+        Integer vin = scanner.nextInt();
+        scanner.nextLine();
+        Vehicle selectedVehicle = dealership.getVin(vin);
+
+        if (selectedVehicle == null) {
+            System.out.println("Vehicle not found");
+            return;
+        }
+
+        if (selectedVehicle.getYear() < 2022) {
+            System.out.println("Vehicle is too old to be leased. Continue with sale only.");
+        }
+        System.out.print("Do yo want to (1) sell or (2) Lease?: ");
+        String option = scanner.nextLine();
+        System.out.println("Customer name: ");
+        String name = scanner.nextLine();
+        System.out.println("Customer email: ");
+        String email = scanner.nextLine();
+        String date = LocalDate.now().toString();
+        Contract contract = null;
+
+        if (option.equals("1") || selectedVehicle.getYear() < 2022) {
+            System.out.println("Finance? (yes/no): ");
+            boolean finance = scanner.nextLine().equalsIgnoreCase("yes");
+            contract = new SalesContract(name, date, email, selectedVehicle, finance);
+        } else if (option.equals("2")) {
+
+            if (selectedVehicle.getYear() <= LocalDate.now().getYear() - 3) {
+                System.out.println("Vehicle is too old to be leased.");
+                return;
+            }
+
+            contract = new LeaseContract(date, name, email, selectedVehicle);
+        } else {
+            System.out.println("Invalid option.");
+            return;
+        }
+
+        if (contract != null){
+            contractFileManager.saveContract(contract);
+            dealership.removeVehicle(vin);
+            System.out.println("Contract saved successfully");
+        }}
 
 }
